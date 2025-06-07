@@ -2,3 +2,4 @@ node_modules
 accounts.json
 address.txt
 abi.json
+build

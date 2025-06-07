@@ -12,6 +12,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.9.5",
     "solc": "^0.8.19",
+    "truffle": "^5.11.5",
     "web3": "^1.10.0"
   }
 }
