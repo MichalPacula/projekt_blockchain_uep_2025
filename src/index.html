@@ -4,165 +4,184 @@
         <meta charset="UTF-8">
         <title>Ticket NFT DApp</title>
         <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <body>
-        <h1>TicketNFT - Wydarzenia</h1>
-        <h2>Lista wydarzeń</h2>
-        <div id="eventsList"></div>
-        <hr>
-        <div>
-            <h2>Dodaj wydarzenie</h2>
-            <input id="ename" placeholder="Nazwa" />
-            <input id="edate" placeholder="Data" />
-            <input id="elocation" placeholder="Lokalizacja" />
-            <input id="eprice" placeholder="Cena (ETH)" />
-            <input id="emax" placeholder="Max biletów" />
-            <button id="btnCreateEvent">Dodaj wydarzenie</button>
-        </div>
-        <hr>
-        <div>
-            <h2>Kup bilet</h2>
-            <input id="eventId" placeholder="ID wydarzenia" />
-            <input id="uri" placeholder="Token URI" />
-            <button id="btnBuyTicket">Kup bilet</button>
+    <body class="bg-gray-100 text-gray-800">
+        <div class="max-w-4xl mx-auto px-4 py-8">
+            <h1 class="text-4xl font-bold text-center mb-8">TicketNFT - Wydarzenia</h1>
+            <div class="bg-white p-6 rounded-xl shadow-md">
+                <h2 class="text-2xl font-semibold mb-4">📅 Lista wydarzeń</h2>
+                <div id="eventsList" class="space-y-2"></div>
+            </div>
 
-            <h3>Generuj Token URI</h3>
-            <input id="ticketName" placeholder="Nazwa biletu" />
-            <input id="ticketDescription" placeholder="Opis biletu" />
-            <button id="btnGenerateTokenURI">Generuj Token URI</button>
-            <p>Wygenerowany Token URI: <span id="generatedTokenURI"></span></p>
-        </div>
-        <hr>
-        <div>
-            <h2>Zwrot biletów</h2>
-            <input id="refundId" placeholder="ID biletu" />
-            <button id="btnRefundTicket">Zwróć bilet</button>
-        </div>
-        <script>
-            let web3;
-            let contract;
-            let account;
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                <h2 class="text-2xl font-semibold mb-4">➕ Dodaj wydarzenie</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input id="ename" class="p-2 border rounded" placeholder="Nazwa" />
+                    <input id="edate" class="p-2 border rounded" placeholder="Data" />
+                    <input id="elocation" class="p-2 border rounded" placeholder="Lokalizacja" />
+                    <input id="eprice" class="p-2 border rounded" placeholder="Cena (ETH)" />
+                    <input id="emax" class="p-2 border rounded" placeholder="Max biletów" />
+                </div>
+                <button id="btnCreateEvent" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Dodaj wydarzenie
+                </button>
+            </div>
 
-            async function init() {
-                web3 = new Web3('http://127.0.0.1:7545');
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                <h2 class="text-2xl font-semibold mb-4">🛒 Kup bilet</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input id="eventId" class="p-2 border rounded" placeholder="ID wydarzenia" />
+                    <input id="uri" class="p-2 border rounded" placeholder="Token URI" />
+                </div>
+                <button id="btnBuyTicket" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    Kup bilet
+                </button>
 
-                const abiResponse = await fetch('abi.json');
-                const abi = await abiResponse.json();
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h3 class="text-2xl font-semibold mb-4">Generuj Token URI</h3>
+                    <input id="ticketName" class="p-2 border rounded" placeholder="Nazwa biletu" />
+                    <input id="ticketDescription" class="p-2 border rounded" placeholder="Opis biletu" />
+                    <p>Wygenerowany Token URI: <span id="generatedTokenURI"></span></p>
+                </div>
+                <button id="btnGenerateTokenURI" class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    Generuj Token URI
+                </button>
+            </div>
 
-                const addressResponse = await fetch('address.txt');
-                const address = await addressResponse.text();
+            <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                <h2 class="text-2xl font-semibold mb-4">Zwrot biletów</h2>
+                <input id="refundId" class="p-2 border rounded w-full" placeholder="ID biletu" />
+                <button id="btnRefundTicket" class="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                    Zwróć bilet
+                </button>
+            </div>
+            <script>
+                let web3;
+                let contract;
+                let account;
 
-                contract = new web3.eth.Contract(abi, address.trim());
+                async function init() {
+                    web3 = new Web3('http://127.0.0.1:7545');
 
-                const accountsResponse = await fetch('accounts.json');
-                const accountsData = await accountsResponse.json();
-                account = accountsData.account;
+                    const abiResponse = await fetch('abi.json');
+                    const abi = await abiResponse.json();
 
-                console.log('Connected account: ', account);
-                console.log('Deployed to:', contract.options.address);
-            }
+                    const addressResponse = await fetch('address.txt');
+                    const address = await addressResponse.text();
 
-            async function createEvent() {
-                const name = document.getElementById('ename').value;
-                const date = document.getElementById('edate').value;
-                const location = document.getElementById('elocation').value;
-                const price = document.getElementById('eprice').value;
-                const maxTickets = document.getElementById('emax').value;
+                    contract = new web3.eth.Contract(abi, address.trim());
 
-                const priceWei = web3.utils.toWei(price, 'ether');
+                    const accountsResponse = await fetch('accounts.json');
+                    const accountsData = await accountsResponse.json();
+                    account = accountsData.account;
 
-                try {
-                    await contract.methods.createEvent(name, date, location, priceWei, maxTickets)
-                        .send({ from: account, gas: 3000000 });
-                    alert('Wydarzenie stworzone!');
-                } catch (err) {
-                    alert('Error: ' + err.message);
+                    console.log('Connected account: ', account);
+                    console.log('Deployed to:', contract.options.address);
                 }
-            }
 
-            async function buyTicket() {
-                const eventId = document.getElementById('eventId').value;
-                const tokenURI = document.getElementById('uri').value;
+                async function createEvent() {
+                    const name = document.getElementById('ename').value;
+                    const date = document.getElementById('edate').value;
+                    const location = document.getElementById('elocation').value;
+                    const price = document.getElementById('eprice').value;
+                    const maxTickets = document.getElementById('emax').value;
 
-                try {
-                    const eventInfo = await contract.methods.events(eventId).call();
-                    const priceWei = eventInfo.ticketPrice;
+                    const priceWei = web3.utils.toWei(price, 'ether');
 
-                    const receipt = await contract.methods.mintTicket(eventId, tokenURI)
-                        .send({ from: account, value: priceWei, gas: 3000000 });
-                    
-                    const mintedEvent = receipt.events.TicketMinted;
-                    const mintedTokenId = mintedEvent.returnValues.tokenId;
-
-                    alert('Bilet kupiony! Id biletu: ' + mintedTokenId);
-
-                    loadEvents();
-                } catch (err) {
-                    alert('Error: ' + err.message);
-                }
-            }
-
-            async function refundTicket() {
-                const tokenId = document.getElementById('refundId').value;
-
-                try {
-                    await contract.methods.refundTicket(tokenId)
-                        .send({ from: account, gas: 3000000 });
-                    alert('Bilet zwrócony');
-
-                    loadEvents();
-                } catch (err) {
-                    alert('Error: ' + err.message);
-                }
-            }
-
-            async function loadEvents() {
-                try{
-                    const eventsDiv = document.getElementById('eventsList');
-                    eventsDiv.innerHTML = '';
-
-                    const currentEventId = await contract.methods.currentEventId().call();
-
-                    for (let i = 1; i <= currentEventId; i++) {
-                        const eventData = await contract.methods.events(i).call();
-                        const eventInfo = `ID: ${i} | ${eventData.name} | Data: ${eventData.date} | Lokalizacja: ${eventData.location} | Cena: ${web3.utils.fromWei(eventData.ticketPrice, 'ether')} ETH | Dostępne bilety: ${eventData.maxTickets - eventData.ticketsSold}`;
-
-                        const p = document.createElement('p');
-                        p.textContent = eventInfo;
-                        eventsDiv.appendChild(p);
+                    try {
+                        await contract.methods.createEvent(name, date, location, priceWei, maxTickets)
+                            .send({ from: account, gas: 3000000 });
+                        alert('Wydarzenie stworzone!');
+                    } catch (err) {
+                        alert('Error: ' + err.message);
                     }
-                } catch (err) {
-                    console.error('Error loading events: ', err);
                 }
-            }
 
-            async function generateTokenURI() {
-                const ticketName = document.getElementById('ticketName').value || 'Bilet';
-                const ticketDesc = document.getElementById('ticketDescription').value || 'Opis biletu';
+                async function buyTicket() {
+                    const eventId = document.getElementById('eventId').value;
+                    const tokenURI = document.getElementById('uri').value;
 
-                const metadata = {
-                    name: ticketName,
-                    description: ticketDesc,
+                    try {
+                        const eventInfo = await contract.methods.events(eventId).call();
+                        const priceWei = eventInfo.ticketPrice;
+
+                        const receipt = await contract.methods.mintTicket(eventId, tokenURI)
+                            .send({ from: account, value: priceWei, gas: 3000000 });
+
+                        const mintedEvent = receipt.events.TicketMinted;
+                        const mintedTokenId = mintedEvent.returnValues.tokenId;
+
+                        alert('Bilet kupiony! Id biletu: ' + mintedTokenId);
+
+                        loadEvents();
+                    } catch (err) {
+                        alert('Error: ' + err.message);
+                    }
+                }
+
+                async function refundTicket() {
+                    const tokenId = document.getElementById('refundId').value;
+
+                    try {
+                        await contract.methods.refundTicket(tokenId)
+                            .send({ from: account, gas: 3000000 });
+                        alert('Bilet zwrócony');
+
+                        loadEvents();
+                    } catch (err) {
+                        alert('Error: ' + err.message);
+                    }
+                }
+
+                async function loadEvents() {
+                    try{
+                        const eventsDiv = document.getElementById('eventsList');
+                        eventsDiv.innerHTML = '';
+
+                        const currentEventId = await contract.methods.currentEventId().call();
+
+                        for (let i = 1; i <= currentEventId; i++) {
+                            const eventData = await contract.methods.events(i).call();
+                            const eventInfo = `ID: ${i} | ${eventData.name} | Data: ${eventData.date} | Lokalizacja: ${eventData.location} | Cena: ${web3.utils.fromWei(eventData.ticketPrice, 'ether')} ETH | Dostępne bilety: ${eventData.maxTickets - eventData.ticketsSold}`;
+
+                            const p = document.createElement('p');
+                            p.textContent = eventInfo;
+                            eventsDiv.appendChild(p);
+                        }
+                    } catch (err) {
+                        console.error('Error loading events: ', err);
+                    }
+                }
+
+                async function generateTokenURI() {
+                    const ticketName = document.getElementById('ticketName').value || 'Bilet';
+                    const ticketDesc = document.getElementById('ticketDescription').value || 'Opis biletu';
+
+                    const metadata = {
+                        name: ticketName,
+                        description: ticketDesc,
+                    };
+
+                    const jsonStr = JSON.stringify(metadata);
+                    const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+                    const dataUrl = `data:application/json;base64,${base64}`;
+
+                    document.getElementById('generatedTokenURI').textContent = dataUrl;
+                    document.getElementById('uri').value = dataUrl;
+                }
+
+                window.onload = async () => {
+                    await init();
+
+                    loadEvents();
+
+                    document.getElementById('btnCreateEvent').addEventListener('click', createEvent);
+                    document.getElementById('btnBuyTicket').addEventListener('click', buyTicket);
+                    document.getElementById('btnRefundTicket').addEventListener('click', refundTicket);
+                    document.getElementById('btnGenerateTokenURI').addEventListener('click', generateTokenURI);
                 };
-
-                const jsonStr = JSON.stringify(metadata);
-                const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
-                const dataUrl = `data:application/json;base64,${base64}`;
-
-                document.getElementById('generatedTokenURI').textContent = dataUrl;
-                document.getElementById('uri').value = dataUrl;
-            }
-
-            window.onload = async () => {
-                await init();
-
-                loadEvents();
-
-                document.getElementById('btnCreateEvent').addEventListener('click', createEvent);
-                document.getElementById('btnBuyTicket').addEventListener('click', buyTicket);
-                document.getElementById('btnRefundTicket').addEventListener('click', refundTicket);
-                document.getElementById('btnGenerateTokenURI').addEventListener('click', generateTokenURI);
-            };
-        </script>
+            </script>
+        </div>
     </body>
 </html>
